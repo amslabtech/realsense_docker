@@ -15,4 +15,5 @@ nvidia-docker run -it --rm \
   --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
   --volume="/dev:/dev" \
   --net="host" \
-  $IMAGE_NAME
+  $IMAGE_NAME \
+  bash -c "source /root/catkin_ws/devel/setup.bash;roslaunch realsense2_camera rs_rgbd.launch"
