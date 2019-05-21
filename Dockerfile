@@ -42,8 +42,9 @@ RUN git clone https://github.com/intel-ros/realsense -b 2.2.3
 RUN cd /root/catkin_ws && /bin/bash -c "source /opt/ros/kinetic/setup.bash; catkin_make"
 
 RUN apt-get update && \
-    apt-get install -y ros-kinetic-rgbd-launch && \
-	rm -rf /var/lib/apt/lists/*
+    apt-get install -y ros-kinetic-rgbd-launch \
+	                   ros-kinetic-image-transport-* \
+	&& rm -rf /var/lib/apt/lists/*
 
 WORKDIR /root
 
