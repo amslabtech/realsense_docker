@@ -1,10 +1,10 @@
-FROM osrf/ros:kinetic-desktop
+FROM ros:kinetic-ros-base
 
 RUN apt-get update
 
-RUN apt-get install -y software-properties-common \ 
+RUN apt-get install -y software-properties-common \
                        apt-utils \
-					   wget && \
+                       wget && \
     rm -rf /var/lib/apt/lists/*
 
 # librealsense
@@ -16,8 +16,8 @@ RUN apt-get update && \
     apt-get install -y librealsense2-dkms \
                        librealsense2-utils \
                        librealsense2-dev \
-                       librealsense2-dbg && \
-	rm -rf /var/lib/apt/lists/*
+                       librealsense2-dbg \
+    && rm -rf /var/lib/apt/lists/*
 
 # ROS setting
 WORKDIR /root
@@ -34,17 +34,21 @@ ENV ROS_PACKAGE_PATH=/root/catkin_ws:$ROS_PACKAGE_PATH
 
 ENV ROS_WORKSPACE=/root/catkin_ws
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+                       ros-kinetic-rgbd-launch \
+                       ros-kinetic-image-transport-* \
+                       ros-kinetic-cv-bridge \
+                       ros-kinetic-tf* \
+    && rm -rf /var/lib/apt/lists/*
+
+
 # realsense ros (2.2.3)
 WORKDIR /root/catkin_ws/src
 
 RUN git clone https://github.com/intel-ros/realsense -b 2.2.3
 
 RUN cd /root/catkin_ws && /bin/bash -c "source /opt/ros/kinetic/setup.bash; catkin_make"
-
-RUN apt-get update && \
-    apt-get install -y ros-kinetic-rgbd-launch \
-	                   ros-kinetic-image-transport-* \
-	&& rm -rf /var/lib/apt/lists/*
 
 WORKDIR /root
 
