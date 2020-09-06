@@ -1,4 +1,4 @@
-FROM ros:kinetic-ros-base
+FROM ros:melodic-ros-base
 
 RUN apt-get update
 
@@ -8,9 +8,9 @@ RUN apt-get install -y software-properties-common \
     rm -rf /var/lib/apt/lists/*
 
 # librealsense
-RUN apt-key adv --keyserver keys.gnupg.net --recv-key C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C8B3A55A6F3EFCDE
+RUN sudo apt-key adv --keyserver keys.gnupg.net --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
 
-RUN apt-add-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo xenial main" -u
+RUN sudo add-apt-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo bionic main" -u
 
 RUN apt-get update && \
     apt-get install -y librealsense2-dkms \
@@ -24,9 +24,9 @@ WORKDIR /root
 
 RUN /bin/bash -c "mkdir -p catkin_ws/src"
 
-RUN cd catkin_ws/src && /bin/bash -c "source /opt/ros/kinetic/setup.bash; catkin_init_workspace"
+RUN cd catkin_ws/src && /bin/bash -c "source /opt/ros/melodic/setup.bash; catkin_init_workspace"
 
-RUN cd catkin_ws && /bin/bash -c "source /opt/ros/kinetic/setup.bash; catkin_make"
+RUN cd catkin_ws && /bin/bash -c "source /opt/ros/melodic/setup.bash; catkin_make"
 
 RUN cd /root && echo source /root/catkin_ws/devel/setup.bash >> .bashrc
 
@@ -36,19 +36,22 @@ ENV ROS_WORKSPACE=/root/catkin_ws
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-                       ros-kinetic-rgbd-launch \
-                       ros-kinetic-image-transport-* \
-                       ros-kinetic-cv-bridge \
-                       ros-kinetic-tf* \
+                       ros-melodic-rgbd-launch \
+                       ros-melodic-image-transport-* \
+                       ros-melodic-cv-bridge \
+                       ros-melodic-tf* \
     && rm -rf /var/lib/apt/lists/*
-
 
 # realsense ros (2.2.3)
 WORKDIR /root/catkin_ws/src
 
-RUN git clone https://github.com/intel-ros/realsense -b 2.2.3
+RUN git clone https://github.com/intel-ros/realsense -b 2.2.16
 
-RUN cd /root/catkin_ws && /bin/bash -c "source /opt/ros/kinetic/setup.bash; catkin_make"
+ENV ROS_VER=melodic
+
+RUN apt-get update && apt-get install ros-melodic-ddynamic-reconfigure
+
+RUN cd /root/catkin_ws && /bin/bash -c "source /opt/ros/melodic/setup.bash; catkin_make"
 
 WORKDIR /root
 

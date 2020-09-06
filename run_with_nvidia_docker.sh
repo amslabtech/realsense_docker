@@ -4,7 +4,8 @@ IMAGE_NAME=realsense_docker:latest
 
 xhost +
 
-nvidia-docker run -it --rm \
+docker run -it --rm \
+  --gpus all \
   --privileged \
   --env=QT_X11_NO_MITSHM=1 \
   --env=DISPLAY=$DISPLAY \
