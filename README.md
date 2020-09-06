@@ -1,6 +1,8 @@
 # realsense_docker
 ## REQUIREMENT
-- RealSense D435
-  - firmware version 5.11.6.200
-- Ubuntu16.04LTS
-- nvidia-docker
+- RealSense D455
+- Ubuntu18.04LTS
+
+## How to Use
+- `./build sh`
+- `./run_docker`
