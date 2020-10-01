@@ -61,3 +61,14 @@ ENV PATH /usr/local/nvidia/bin:${PATH}
 ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
 
 WORKDIR /root
+
+# script
+RUN echo "#!/bin/bash \n \
+        source /root/catkin_ws/devel/setup.bash; \n \
+        roslaunch realsense2_camera rs_camera.launch camera:=realsense_fc serial_no:=830112070463 & \n \
+        roslaunch realsense2_camera rs_camera.launch camera:=realsense_fr serial_no:=830112070972 & \n \
+        roslaunch realsense2_camera rs_camera.launch camera:=realsense_fl serial_no:=825412070169 & \n \
+        roslaunch realsense2_camera rs_camera.launch camera:=realsense_rr serial_no:=829212072293 & \n \
+        roslaunch realsense2_camera rs_camera.launch camera:=realsense_rl serial_no:=830112070595" \
+        >> /home/run_cameras.sh && \
+    chmod +x /home/run_cameras.sh
