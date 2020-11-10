@@ -1,60 +1,70 @@
-FROM ros:kinetic-ros-base
-
-RUN apt-get update
-
-RUN apt-get install -y software-properties-common \
-                       apt-utils \
-                       wget && \
-    rm -rf /var/lib/apt/lists/*
+FROM ros:melodic-ros-base
 
 # librealsense
-RUN apt-key adv --keyserver keys.gnupg.net --recv-key C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C8B3A55A6F3EFCDE
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    apt-utils \
+    wget \
+    git \
+    libssl-dev \
+    libusb-1.0-0-dev \
+    pkg-config \
+    libgtk-3-dev \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
-RUN apt-add-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo xenial main" -u
+WORKDIR root
 
-RUN apt-get update && \
-    apt-get install -y librealsense2-dkms \
-                       librealsense2-utils \
-                       librealsense2-dev \
-                       librealsense2-dbg \
-    && rm -rf /var/lib/apt/lists/*
+RUN git clone https://github.com/IntelRealSense/librealsense.git
 
-# ROS setting
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    libglfw3-dev \
+    libgl1-mesa-dev \
+    libglu1-mesa-dev \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /root/librealsense
+
+# RUN mkdir -p /etc/udev/rules.d/
+#
+# RUN ./scripts/setup_udev_rules.sh
+#
+# WORKDIR /root/librealsense/scripts
+#
+# RUN ./patch-arch.sh
+#
+# WORKDIR /root/librealsense
+
+RUN mkdir build
+
+WORKDIR /root/librealsense/build
+
+RUN cmake ../
+
+RUN make && make install
+
+# for realsense-ros
 WORKDIR /root
 
-RUN /bin/bash -c "mkdir -p catkin_ws/src"
+RUN mkdir -p catkin_ws/src
 
-RUN cd catkin_ws/src && /bin/bash -c "source /opt/ros/kinetic/setup.bash; catkin_init_workspace"
-
-RUN cd catkin_ws && /bin/bash -c "source /opt/ros/kinetic/setup.bash; catkin_make"
-
-RUN cd /root && echo source /root/catkin_ws/devel/setup.bash >> .bashrc
-
-ENV ROS_PACKAGE_PATH=/root/catkin_ws:$ROS_PACKAGE_PATH
-
-ENV ROS_WORKSPACE=/root/catkin_ws
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-                       ros-kinetic-rgbd-launch \
-                       ros-kinetic-image-transport-* \
-                       ros-kinetic-cv-bridge \
-                       ros-kinetic-tf* \
-    && rm -rf /var/lib/apt/lists/*
-
-
-# realsense ros (2.2.3)
 WORKDIR /root/catkin_ws/src
 
-RUN git clone https://github.com/intel-ros/realsense -b 2.2.3
+RUN git clone https://github.com/IntelRealSense/realsense-ros.git -b 2.2.17
 
-RUN cd /root/catkin_ws && /bin/bash -c "source /opt/ros/kinetic/setup.bash; catkin_make"
+WORKDIR /root/catkin_ws
 
-WORKDIR /root
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    python-catkin-tools \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
-# nvidia
-LABEL com.nvidia.volumes.needed="nvidia_driver"
-ENV PATH /usr/local/nvidia/bin:${PATH}
-ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
+RUN apt-get update && apt-get install --no-install-recommends -y \
+        ros-melodic-rgbd-launch \
+ && /bin/bash -c "source /opt/ros/melodic/setup.bash; \
+                  rosdep install -i -y --from-paths src; \
+                  catkin build" \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /root
+
