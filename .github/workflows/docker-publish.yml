@@ -1,0 +1,59 @@
+name: Docker
+
+on:
+  push:
+    branches:
+      - master
+
+  # Run tests for any PRs.
+  pull_request:
+
+env:
+  IMAGE_NAME: realsense_ros
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ros_distro: [kinetic, melodic]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run tests
+        run: |
+            docker build . --file Dockerfile --build-arg ros_distro=${{matrix.ros_distro}}
+
+  # Push image to GitHub Packages.
+  push:
+    needs: test
+
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    strategy:
+      matrix:
+        ros_distro: [kinetic, melodic]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build image
+        run: docker build . --file Dockerfile --tag $IMAGE_NAME --build-arg ros_distro=${{matrix.ros_distro}}
+
+      - name: Log into GitHub Container Registry
+        run: echo "${{secrets.CR_PAT}}" | docker login https://ghcr.io -u ${{github.actor}} --password-stdin
+
+      - name: Push image to GitHub Container Registry
+        run: |
+          IMAGE_ID=ghcr.io/${{github.repository_owner}}/$IMAGE_NAME
+
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+
+          # Set VERSION
+          VERSION=${{matrix.ros_distro}}
+
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+
+          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
