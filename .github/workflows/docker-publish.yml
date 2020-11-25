@@ -24,6 +24,9 @@ jobs:
         run: |
             docker build . --file Dockerfile --build-arg ros_distro=${{matrix.ros_distro}}
 
+      - name: Log into GitHub Container Registry
+        run: echo "${{secrets.CR_PAT}}" | docker login https://ghcr.io -u ${{github.actor}} --password-stdin
+
   # Push image to GitHub Packages.
   push:
     needs: test
