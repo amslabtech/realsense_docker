@@ -21,6 +21,9 @@ jobs:
         run: |
             docker build . --file Dockerfile --tag $IMAGE_NAME:latest
             docker build . --file Dockerfile.cuda --tag $IMAGE_NAME:cuda
+      - name: setup docker for arm and build image
+        run: |
+            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
             docker build . --file Dockerfile.jetson --tag $IMAGE_NAME:jetson
 
   # Push image to GitHub Packages.
@@ -36,6 +39,9 @@ jobs:
         run: |
             docker build . --file Dockerfile --tag $IMAGE_NAME:latest
             docker build . --file Dockerfile.cuda --tag $IMAGE_NAME:cuda
+      - name: setup docker for arm and build image
+        run: |
+            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
             docker build . --file Dockerfile.jetson --tag $IMAGE_NAME:jetson
 
       - name: Log into GitHub Container Registry
