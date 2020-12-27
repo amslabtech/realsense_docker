@@ -1,10 +1,16 @@
 #!/bin/bash
 
-ROS_DISTRO=melodic
-IMAGE_NAME=ghcr.io/amslabtech/realsense_ros:${ROS_DISTRO}
+IMAGE_NAME=ghcr.io/amslabtech/realsense_ros
 CONTAINER_NAME=realsense_ros
-echo "IMAGE_NAME=${IMAGE_NAME}"
-echo "CONTAINER_NAME=${CONTAINER_NAME}"
+
+dpkg -s nvidia-container-runtime > /dev/null 2>&1
+if [ ! $? -eq 0 ];then
+    TAG_NAME=latest
+    GPU_OPTION=''
+else
+    TAG_NAME=cuda
+    GPU_OPTION='--gpus all'
+fi
 
 ROS_MASTER_URI="http://`hostname -I | cut -d' ' -f1`:11311"
 ROS_IP=`hostname -I | cut -d' ' -f1`
@@ -22,17 +28,19 @@ if [ ! $# -eq 0 ]; then
     fi
 fi
 
+echo "IMAGE_NAME=${IMAGE_NAME}:${TAG_NAME}"
+echo "CONTAINER_NAME=${CONTAINER_NAME}"
 echo "ROS_MASTER_URI=${ROS_MASTER_URI}"
 echo "ROS_IP=${ROS_IP}"
 echo "LAUNCH=${LAUNCH}"
 
 docker run -it --rm \
     --privileged \
-    --gpus all \
+    ${GPU_OPTION} \
     --volume="/dev:/dev" \
     --env ROS_MASTER_URI=${ROS_MASTER_URI} \
     --env ROS_IP=${ROS_IP} \
     --net="host" \
-    --name $CONTAINER_NAME \
-    $IMAGE_NAME \
+    --name ${CONTAINER_NAME} \
+    ${IMAGE_NAME}:${TAG_NAME} \
     bash -c "roslaunch realsense2_camera ${LAUNCH}"
