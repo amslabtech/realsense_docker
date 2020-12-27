@@ -1,0 +1,44 @@
+ARG L4T_VERSION="r32.4.4"
+FROM nvcr.io/nvidia/l4t-base:${L4T_VERSION}
+
+ENV DEBIAN_FRONTEND noninteractive
+SHELL ["/bin/bash", "-c"]
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        gnupg \
+        lsb-release && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# install ROS melodic
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ros-melodic-ros-base && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        python-rosdep \
+        python-rosinstall \
+        python-rosinstall-generator \
+        python-wstool \
+        build-essential && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN echo 'source /opt/ros/melodic/setup.bash && exec "$@"' \
+    > /root/ros_entrypoint.sh
+
+# install ROS Realsense pacakge
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ros-melodic-realsense2-camera \
+        ros-melodic-rgbd-launch && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+ENTRYPOINT ["bash", "/root/ros_entrypoint.sh"]
