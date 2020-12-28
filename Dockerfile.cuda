@@ -10,6 +10,7 @@ ENV ROS_DISTRO=${ros_distro}
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         ros-${ROS_DISTRO}-realsense2-camera \
+        ros-${ROS_DISTRO}-image-transport* \
         ros-${ROS_DISTRO}-rgbd-launch && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
