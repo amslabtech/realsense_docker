@@ -20,7 +20,6 @@ jobs:
       - name: Run tests
         run: |
             docker build . --file Dockerfile --tag $IMAGE_NAME:latest
-            docker build . --file Dockerfile.cuda --tag $IMAGE_NAME:cuda
       - name: setup docker for arm and build image
         run: |
             docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
@@ -38,7 +37,6 @@ jobs:
       - name: Build image
         run: |
             docker build . --file Dockerfile --tag $IMAGE_NAME:latest
-            docker build . --file Dockerfile.cuda --tag $IMAGE_NAME:cuda
       - name: setup docker for arm and build image
         run: |
             docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
@@ -56,7 +54,5 @@ jobs:
 
           docker tag $IMAGE_NAME:latest $IMAGE_ID:latest
           docker push $IMAGE_ID:latest
-          docker tag $IMAGE_NAME:cuda $IMAGE_ID:cuda
-          docker push $IMAGE_ID:cuda
           docker tag $IMAGE_NAME:jetson $IMAGE_ID:jetson
           docker push $IMAGE_ID:jetson
