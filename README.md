@@ -29,9 +29,12 @@ If you want to set ROS_MASTER_URI, git it an argument as follows.
 docker build . -t realsense_ros --file Dockerfile
 ```
 
-Default ROS_DISTRO is `melodic`.
-If you want to use `kinetic` as ROS_DISTRO, use following command.
+Default ROS_DISTRO is `noeitc`.
+If you want to use `kinetic` or `melodic` as ROS_DISTRO, use following command.
 
 ```sh
+# for kinetic
 docker build . -t realsense_ros:kinetic --file Dockerfile --build-arg ros_distro=kinetic
+# for melodic
+docker build . -t realsense_ros:kinetic --file Dockerfile --build-arg ros_distro=melodic
 ```
