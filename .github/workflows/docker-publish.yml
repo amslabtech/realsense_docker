@@ -61,7 +61,7 @@ jobs:
           docker tag $IMAGE_NAME:${{matrix.ros_distro}} $IMAGE_ID:${{matrix.ros_distro}}
           docker push $IMAGE_ID:${{matrix.ros_distro}}
       - name: Push latest version
-        if: ${{matrix.ros_distro}} == 'noetic'
+        if: matrix.ros_distro == 'noetic'
         run: |
           docker tag $IMAGE_NAME:${{matrix.ros_distro}} $IMAGE_ID:latest
           docker push $IMAGE_ID:latest
