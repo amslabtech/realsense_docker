@@ -12,14 +12,22 @@ env:
   IMAGE_NAME: realsense_ros
 
 jobs:
-  test:
+  test_ubuntu:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ros_distro: [kinetic, melodic, noetic]
 
     steps:
       - uses: actions/checkout@v2
       - name: Run tests
-        run: |
-            docker build . --file Dockerfile --tag $IMAGE_NAME:latest
+        run: docker build . --file Dockerfile --tag $IMAGE_NAME:${{matrix.ros_distro}} --build-arg ros_distro=${{matrix.ros_distro}}
+
+  test_jetson:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
       - name: setup docker for arm and build image
         run: |
             docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
@@ -27,16 +35,45 @@ jobs:
 
   # Push image to GitHub Packages.
   push:
-    needs: test
+    needs: test_ubuntu
+
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    strategy:
+      matrix:
+        ros_distro: [kinetic, melodic, noetic]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build image
+        run: docker build . --file Dockerfile --tag $IMAGE_NAME:${{matrix.ros_distro}} --build-arg ros_distro=${{matrix.ros_distro}}
+
+      - name: Log into GitHub Container Registry
+        run: echo "${{secrets.CR_PAT}}" | docker login https://ghcr.io -u ${{github.actor}} --password-stdin
+
+      - name: Push image to GitHub Container Registry
+        run: |
+          IMAGE_ID=ghcr.io/${{github.repository_owner}}/$IMAGE_NAME
+
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+
+          docker tag $IMAGE_NAME:${{matrix.ros_distro}} $IMAGE_ID:${{matrix.ros_distro}}
+          docker push $IMAGE_ID:${{matrix.ros_distro}}
+      - name: Push latest version
+        if: ${{matrix.ros_distro}} == 'noetic'
+        run: |
+          docker tag $IMAGE_NAME:${{matrix.ros_distro}} $IMAGE_ID:latest
+          docker push $IMAGE_ID:latest
+
+  push_jetson:
+    needs: test_jetson
 
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
 
     steps:
       - uses: actions/checkout@v2
-      - name: Build image
-        run: |
-            docker build . --file Dockerfile --tag $IMAGE_NAME:latest
       - name: setup docker for arm and build image
         run: |
             docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
@@ -52,7 +89,5 @@ jobs:
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
 
-          docker tag $IMAGE_NAME:latest $IMAGE_ID:latest
-          docker push $IMAGE_ID:latest
           docker tag $IMAGE_NAME:jetson $IMAGE_ID:jetson
           docker push $IMAGE_ID:jetson
