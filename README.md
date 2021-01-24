@@ -36,5 +36,5 @@ If you want to use `kinetic` or `melodic` as ROS_DISTRO, use following command.
 # for kinetic
 docker build . -t realsense_ros:kinetic --file Dockerfile --build-arg ros_distro=kinetic
 # for melodic
-docker build . -t realsense_ros:kinetic --file Dockerfile --build-arg ros_distro=melodic
+docker build . -t realsense_ros:melodic --file Dockerfile --build-arg ros_distro=melodic
 ```
